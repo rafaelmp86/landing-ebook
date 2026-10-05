@@ -166,6 +166,23 @@
       line-height: 1.5;
     }
 
+    .form-input.input-error {
+      border-color: #f87171;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+    }
+
+    .field-error {
+      font-size: 12px;
+      color: #f87171;
+      margin-top: -10px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .field-error.visible {
+      display: block;
+    }
+
     /* ── MENSAGENS DE ESTADO ── */
     .form-message {
       display: none;
@@ -368,6 +385,8 @@
               required
             />
 
+            <p class="field-error" id="erro-nome"></p>
+
             <label class="form-label" for="email">Seu e-mail</label>
             <input
               class="form-input"
@@ -378,6 +397,7 @@
               autocomplete="email"
               required
             />
+            <p class="field-error" id="erro-email"></p>
 
             <input type="hidden" id="utm_source" name="utm_source" value="" />
 
@@ -467,19 +487,63 @@
 
     document.getElementById('utm_source').value = getUTMParam('utm_source');
 
-    const form = document.getElementById('lead-form');
-    const btn  = document.getElementById('btn-submit');
+    const form       = document.getElementById('lead-form');
+    const btn        = document.getElementById('btn-submit');
     const msgSuccess = document.getElementById('msg-success');
     const msgError   = document.getElementById('msg-error');
+
+    const inputNome  = document.getElementById('nome');
+    const inputEmail = document.getElementById('email');
+    const erroNome   = document.getElementById('erro-nome');
+    const erroEmail  = document.getElementById('erro-email');
+
+    function isEmailValido(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    }
+
+    function limparErro(input, erroEl) {
+      input.classList.remove('input-error');
+      erroEl.textContent = '';
+      erroEl.classList.remove('visible');
+    }
+
+    function mostrarErro(input, erroEl, mensagem) {
+      input.classList.add('input-error');
+      erroEl.textContent = mensagem;
+      erroEl.classList.add('visible');
+    }
+
+    // Remove erro ao usuário começar a corrigir o campo
+    inputNome.addEventListener('input', () => limparErro(inputNome, erroNome));
+    inputEmail.addEventListener('input', () => limparErro(inputEmail, erroEmail));
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const nome       = document.getElementById('nome').value.trim();
-      const email      = document.getElementById('email').value.trim();
+      const nome       = inputNome.value.trim();
+      const email      = inputEmail.value.trim();
       const utm_source = document.getElementById('utm_source').value;
 
-      if (!nome || !email) return;
+      // Limpa erros anteriores
+      limparErro(inputNome, erroNome);
+      limparErro(inputEmail, erroEmail);
+
+      let temErro = false;
+
+      if (!nome) {
+        mostrarErro(inputNome, erroNome, 'Por favor, informe o seu nome.');
+        temErro = true;
+      }
+
+      if (!email) {
+        mostrarErro(inputEmail, erroEmail, 'Por favor, informe o seu e-mail.');
+        temErro = true;
+      } else if (!isEmailValido(email)) {
+        mostrarErro(inputEmail, erroEmail, 'Informe um e-mail válido (ex: nome@empresa.com).');
+        temErro = true;
+      }
+
+      if (temErro) return;
 
       btn.disabled = true;
       btn.textContent = 'Enviando...';
