@@ -379,6 +379,8 @@
               required
             />
 
+            <input type="hidden" id="utm_source" name="utm_source" value="" />
+
             <button class="btn-submit" type="submit" id="btn-submit">
               Receber agora
             </button>
@@ -457,6 +459,14 @@
   <script>
     const WEBHOOK_URL = 'https://hook.us2.make.com/70w7fpub1wjgeqdklsg32f9fdilt67yo';
 
+    // Lê UTM da URL e preenche o campo oculto
+    function getUTMParam(param) {
+      const url = new URLSearchParams(window.location.search);
+      return url.get(param) || 'direto';
+    }
+
+    document.getElementById('utm_source').value = getUTMParam('utm_source');
+
     const form = document.getElementById('lead-form');
     const btn  = document.getElementById('btn-submit');
     const msgSuccess = document.getElementById('msg-success');
@@ -465,8 +475,9 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const nome  = document.getElementById('nome').value.trim();
-      const email = document.getElementById('email').value.trim();
+      const nome       = document.getElementById('nome').value.trim();
+      const email      = document.getElementById('email').value.trim();
+      const utm_source = document.getElementById('utm_source').value;
 
       if (!nome || !email) return;
 
@@ -479,7 +490,7 @@
         const res = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, email })
+          body: JSON.stringify({ nome, email, utm_source })
         });
 
         if (res.ok) {
